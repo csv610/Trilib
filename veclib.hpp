@@ -3,10 +3,10 @@
 #include <stdlib.h>
 #include <math.h>
 #include <assert.h>
-#include <values.h>
 #include <vector>
 #include <algorithm>
 #include <array>
+#include <limits>
 
 typedef std::array<int,2>    Point2I;
 typedef std::array<int,3>    Point3I;

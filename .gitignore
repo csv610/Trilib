@@ -1,0 +1,44 @@
+# Build artifacts
+build/
+dist/
+*.o
+*.a
+*.so
+*.dylib
+*.dll
+*.exe
+
+# IDE and Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+*.sublime-project
+*.sublime-workspace
+.vs/
+.clion.cmake
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+
+# Compiler output
+*.out
+*.log
+
+# Dependencies
+include/
+lib/
+
+# Test coverage
+coverage/
+*.gcno
+*.gcda
+
+# OS files
+Thumbs.db
+.DS_Store
