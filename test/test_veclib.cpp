@@ -292,7 +292,7 @@ TEST(VecLibStatistics, StandardDeviation) {
 TEST(VecLibStatistics, MedianValue) {
     std::vector<double> values = {1.0, 3.0, 2.0, 5.0, 4.0};
 
-    double median = JMath::mean_value(values);
+    double median = JMath::median_value(values);
     EXPECT_NEAR(median, 3.0, EPSILON);
 }
 
@@ -327,8 +327,115 @@ TEST(VecLibTemplates, IntegerType) {
 }
 
 // ============================================================================
+// Bounding Volume Tests
+// ============================================================================
+
+TEST(VecLibBounding, AABBIntersection) {
+    JMath::AABB<double> a = {{0.0, 0.0, 0.0}, {2.0, 2.0, 2.0}};
+    JMath::AABB<double> b = {{1.0, 1.0, 1.0}, {3.0, 3.0, 3.0}};
+    JMath::AABB<double> c = {{4.0, 4.0, 4.0}, {5.0, 5.0, 5.0}};
+
+    EXPECT_TRUE(JMath::aabb_intersect(a, b));
+    EXPECT_FALSE(JMath::aabb_intersect(a, c));
+}
+
+// ============================================================================
+// Ray-Plane Intersection Tests
+// ============================================================================
+
+TEST(VecLibRayPlane, RayPlaneIntersection) {
+    std::array<double, 3> ray_org = {0.0, 5.0, 0.0};
+    std::array<double, 3> ray_dir = {0.0, -1.0, 0.0};
+    std::array<double, 3> p0 = {0.0, 0.0, 0.0};
+    std::array<double, 3> n = {0.0, 1.0, 0.0};
+
+    double t;
+    bool hit = JMath::ray_plane_intersection(ray_org, ray_dir, p0, n, t);
+
+    EXPECT_TRUE(hit);
+    EXPECT_NEAR(t, 5.0, EPSILON);
+
+    // Parallel ray
+    std::array<double, 3> ray_dir_para = {1.0, 0.0, 0.0};
+    hit = JMath::ray_plane_intersection(ray_org, ray_dir_para, p0, n, t);
+    EXPECT_FALSE(hit);
+}
+
+// ============================================================================
 // Edge Cases
 // ============================================================================
+
+TEST(VecLibArithmetic, AddSubScale) {
+    std::array<double, 3> a = {1.0, 2.0, 3.0};
+    std::array<double, 3> b = {4.0, 5.0, 6.0};
+
+    auto sum = JMath::add(a, b);
+    EXPECT_NEAR(sum[0], 5.0, EPSILON);
+    EXPECT_NEAR(sum[1], 7.0, EPSILON);
+    EXPECT_NEAR(sum[2], 9.0, EPSILON);
+
+    auto diff = JMath::sub(b, a);
+    EXPECT_NEAR(diff[0], 3.0, EPSILON);
+    EXPECT_NEAR(diff[1], 3.0, EPSILON);
+    EXPECT_NEAR(diff[2], 3.0, EPSILON);
+
+    auto scaled = JMath::scale(a, 2.0);
+    EXPECT_NEAR(scaled[0], 2.0, EPSILON);
+    EXPECT_NEAR(scaled[1], 4.0, EPSILON);
+    EXPECT_NEAR(scaled[2], 6.0, EPSILON);
+}
+
+TEST(VecLibGeometry, ProjectionReflectionLerp) {
+    std::array<double, 3> v = {3.0, 4.0, 0.0};
+    std::array<double, 3> onto = {1.0, 0.0, 0.0};
+
+    auto proj = JMath::projection(v, onto);
+    EXPECT_NEAR(proj[0], 3.0, EPSILON);
+    EXPECT_NEAR(proj[1], 0.0, EPSILON);
+
+    std::array<double, 3> normal = {0.0, 1.0, 0.0};
+    auto refl = JMath::reflection(v, normal);
+    EXPECT_NEAR(refl[0], 3.0, EPSILON);
+    EXPECT_NEAR(refl[1], -4.0, EPSILON);
+
+    std::array<double, 3> target = {5.0, 6.0, 0.0};
+    auto mid = JMath::lerp(v, target, 0.5);
+    EXPECT_NEAR(mid[0], 4.0, EPSILON);
+    EXPECT_NEAR(mid[1], 5.0, EPSILON);
+}
+
+TEST(VecLibGeometry, DistanceToLineAndSegment) {
+    std::array<double, 3> p = {1.0, 1.0, 0.0};
+    std::array<double, 3> a = {0.0, 0.0, 0.0};
+    std::array<double, 3> b = {2.0, 0.0, 0.0};
+
+    // Point (1,1,0) to line passing through (0,0,0) and (2,0,0)
+    EXPECT_NEAR(JMath::distance_to_line(p, a, b), 1.0, EPSILON);
+    
+    auto cp = JMath::closest_point_on_line(p, a, b);
+    EXPECT_NEAR(cp[0], 1.0, EPSILON);
+    EXPECT_NEAR(cp[1], 0.0, EPSILON);
+
+    // Segment tests
+    EXPECT_NEAR(JMath::distance_to_segment(p, a, b), 1.0, EPSILON);
+    
+    std::array<double, 3> p_outside = {3.0, 1.0, 0.0};
+    // Closest point should be b (2,0,0)
+    // Distance = sqrt((3-2)^2 + (1-0)^2) = sqrt(2) ≈ 1.414
+    EXPECT_NEAR(JMath::distance_to_segment(p_outside, a, b), std::sqrt(2.0), EPSILON);
+}
+
+TEST(VecLibGeometry, DistanceToPlane) {
+    std::array<double, 3> p = {0.0, 5.0, 0.0};
+    std::array<double, 3> p0 = {0.0, 0.0, 0.0};
+    std::array<double, 3> n = {0.0, 1.0, 0.0};
+
+    EXPECT_NEAR(JMath::distance_to_plane(p, p0, n), 5.0, EPSILON);
+    
+    auto cp = JMath::closest_point_on_plane(p, p0, n);
+    EXPECT_NEAR(cp[0], 0.0, EPSILON);
+    EXPECT_NEAR(cp[1], 0.0, EPSILON);
+}
 
 TEST(VecLibEdgeCases, ZeroMagnitudeVector) {
     std::array<double, 3> zero = {0.0, 0.0, 0.0};

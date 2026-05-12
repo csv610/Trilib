@@ -39,7 +39,22 @@ int main() {
     std::cout << "Classification:" << std::endl;
     std::cout << "  Acute: " << (isAcute(p1, p2, p3) ? "Yes" : "No") << std::endl;
     std::cout << "  Obtuse: " << (isObtuse(p1, p2, p3) ? "Yes" : "No") << std::endl;
+    std::cout << "  Right: " << (isRightTriangle(p1, p2, p3) ? "Yes" : "No") << std::endl;
+    std::cout << "  Isosceles: " << (isIsosceles(p1, p2, p3) ? "Yes" : "No") << std::endl;
+    std::cout << "  Equilateral: " << (isEquilateral(p1, p2, p3) ? "Yes" : "No") << std::endl;
     std::cout << "  Degenerate: " << (isDegenerate(p1, p2, p3) ? "Yes" : "No") << std::endl;
+
+    std::cout << "Perimeter: " << perimeter(p1, p2, p3) << std::endl;
+    std::cout << "Altitude from P1: " << altitude(p1, p2, p3, 0) << std::endl;
+
+    // Bounding and containment
+    auto bounds = get_bounds(p1, p2, p3);
+    std::cout << "AABB Min: (" << bounds.min_pt[0] << ", " << bounds.min_pt[1] << ", " << bounds.min_pt[2] << ")" << std::endl;
+    std::cout << "AABB Max: (" << bounds.max_pt[0] << ", " << bounds.max_pt[1] << ", " << bounds.max_pt[2] << ")" << std::endl;
+    
+    std::array<double, 3> qp = {1.0, 1.0, 0.0};
+    std::cout << "Contains (1,1,0): " << (contains(p1, p2, p3, qp) ? "Yes" : "No") << std::endl;
+    std::cout << "Is CCW: " << (is_ccw(p1, p2, p3) ? "Yes" : "No") << std::endl;
 
     std::cout << std::endl;
 
@@ -64,6 +79,11 @@ int main() {
     std::cout << "Incenter: (" << incenter_pt[0] << ", "
               << incenter_pt[1] << ", " << incenter_pt[2] << ")" << std::endl;
     std::cout << "Inradius: " << inradius_val << std::endl;
+
+    // Orthocenter
+    auto ortho = orthocenter(p1, p2, p3);
+    std::cout << "Orthocenter: (" << ortho[0] << ", "
+              << ortho[1] << ", " << ortho[2] << ")" << std::endl;
 
     // Normal vector
     auto normal_vec = normal(p1, p2, p3);
@@ -95,6 +115,20 @@ int main() {
     auto unit = unit_vector(v1);
     std::cout << "Unit vector of v1: (" << unit[0] << ", "
               << unit[1] << ", " << unit[2] << ")" << std::endl;
+
+    // Projection and Reflection
+    auto proj = projection(v1, v2);
+    std::cout << "Projection of v1 onto v2: (" << proj[0] << ", "
+              << proj[1] << ", " << proj[2] << ")" << std::endl;
+
+    std::array<double, 3> normal_plane = {0, 1, 0};
+    auto refl = reflection(v1, normal_plane);
+    std::cout << "Reflection of v1 across (0,1,0): (" << refl[0] << ", "
+              << refl[1] << ", " << refl[2] << ")" << std::endl;
+
+    // Vector arithmetic
+    auto sum_v = add(v1, v2);
+    std::cout << "v1 + v2: (" << sum_v[0] << ", " << sum_v[1] << ", " << sum_v[2] << ")" << std::endl;
 
     // Angle between vectors
     double angle_val = angle(v1, v2);

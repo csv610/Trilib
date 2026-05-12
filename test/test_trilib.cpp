@@ -150,10 +150,57 @@ TEST(TriLibClassification, IsRightTriangle) {
     std::array<double, 3> p2 = {3.0, 0.0, 0.0};
     std::array<double, 3> p3 = {0.0, 4.0, 0.0};
 
-    // Right triangle has max angle = 90, which is considered acute
-    // (isAcute checks if max angle <= 90)
-    EXPECT_TRUE(isAcute(p1, p2, p3));
+    // Right triangle has max angle = 90, which is not acute
+    EXPECT_FALSE(isAcute(p1, p2, p3));
     EXPECT_FALSE(isObtuse(p1, p2, p3));
+    EXPECT_TRUE(isRightTriangle(p1, p2, p3));
+}
+
+TEST(TriLibClassification, IsEquilateralAndIsosceles) {
+    // Equilateral triangle
+    std::array<double, 3> p1 = {0.0, 0.0, 0.0};
+    std::array<double, 3> p2 = {2.0, 0.0, 0.0};
+    std::array<double, 3> p3 = {1.0, std::sqrt(3.0), 0.0};
+
+    EXPECT_TRUE(isEquilateral(p1, p2, p3));
+    EXPECT_TRUE(isIsosceles(p1, p2, p3));
+    EXPECT_TRUE(isAcute(p1, p2, p3));
+
+    // Isosceles but not equilateral
+    std::array<double, 3> p4 = {0.0, 0.0, 0.0};
+    std::array<double, 3> p5 = {4.0, 0.0, 0.0};
+    std::array<double, 3> p6 = {2.0, 1.0, 0.0};
+
+    EXPECT_FALSE(isEquilateral(p4, p5, p6));
+    EXPECT_TRUE(isIsosceles(p4, p5, p6));
+}
+
+TEST(TriLibProperties, PerimeterAndAltitude) {
+    std::array<double, 3> p1 = {0.0, 0.0, 0.0};
+    std::array<double, 3> p2 = {4.0, 0.0, 0.0};
+    std::array<double, 3> p3 = {0.0, 3.0, 0.0};
+
+    // 3-4-5 triangle
+    EXPECT_NEAR(perimeter(p1, p2, p3), 12.0, EPSILON);
+    
+    // Altitude from p1 to hypotenuse (p2-p3)
+    // Area = 6, Base = 5, Altitude = 2*6/5 = 2.4
+    EXPECT_NEAR(altitude(p1, p2, p3, 0), 2.4, EPSILON);
+    
+    // Altitude from p2 to (p1-p3) is 4
+    EXPECT_NEAR(altitude(p1, p2, p3, 1), 4.0, EPSILON);
+}
+
+TEST(TriLibProperties, Orthocenter) {
+    std::array<double, 3> p1 = {0.0, 0.0, 0.0};
+    std::array<double, 3> p2 = {4.0, 0.0, 0.0};
+    std::array<double, 3> p3 = {0.0, 3.0, 0.0};
+
+    // For a right triangle at origin, orthocenter is the origin
+    auto h = orthocenter(p1, p2, p3);
+    EXPECT_NEAR(h[0], 0.0, EPSILON);
+    EXPECT_NEAR(h[1], 0.0, EPSILON);
+    EXPECT_NEAR(h[2], 0.0, EPSILON);
 }
 
 TEST(TriLibClassification, IsDegenerateTriangle) {
@@ -371,8 +418,73 @@ TEST(TriLibBarycentricCoordinates, CoordinatesSum) {
 }
 
 // ============================================================================
-// Template Type Tests (test with different numeric types)
+// Bounding and Containment Tests
 // ============================================================================
+
+TEST(TriLibBoundingAndContainment, TriangleBounds) {
+    std::array<double, 3> p1 = {0.0, 0.0, 0.0};
+    std::array<double, 3> p2 = {4.0, 0.0, 0.0};
+    std::array<double, 3> p3 = {0.0, 3.0, 0.0};
+
+    auto bounds = get_bounds(p1, p2, p3);
+    EXPECT_NEAR(bounds.min_pt[0], 0.0, EPSILON);
+    EXPECT_NEAR(bounds.min_pt[1], 0.0, EPSILON);
+    EXPECT_NEAR(bounds.max_pt[0], 4.0, EPSILON);
+    EXPECT_NEAR(bounds.max_pt[1], 3.0, EPSILON);
+}
+
+TEST(TriLibBoundingAndContainment, PointInTriangle) {
+    std::array<double, 3> p1 = {0.0, 0.0, 0.0};
+    std::array<double, 3> p2 = {4.0, 0.0, 0.0};
+    std::array<double, 3> p3 = {0.0, 3.0, 0.0};
+
+    EXPECT_TRUE(contains(p1, p2, p3, {1.0, 1.0, 0.0}));
+    EXPECT_TRUE(contains(p1, p2, p3, {0.0, 0.0, 0.0})); // vertex
+    EXPECT_FALSE(contains(p1, p2, p3, {4.0, 4.0, 0.0})); // outside
+}
+
+TEST(TriLibBoundingAndContainment, WindingOrder) {
+    std::array<double, 3> p1 = {0.0, 0.0, 0.0};
+    std::array<double, 3> p2 = {1.0, 0.0, 0.0};
+    std::array<double, 3> p3 = {0.0, 1.0, 0.0};
+
+    // CCW in XY plane (Normal is (0,0,1))
+    EXPECT_TRUE(is_ccw(p1, p2, p3, {0, 0, 1}));
+    
+    // CW if viewed from opposite direction
+    EXPECT_FALSE(is_ccw(p1, p2, p3, {0, 0, -1}));
+}
+
+// ============================================================================
+// Intersections Tests
+// ============================================================================
+
+TEST(TriLibIntersections, RayTriangleIntersection) {
+    std::array<double, 3> p1 = {0.0, 0.0, 0.0};
+    std::array<double, 3> p2 = {1.0, 0.0, 0.0};
+    std::array<double, 3> p3 = {0.0, 1.0, 0.0};
+
+    std::array<double, 3> ray_org = {0.2, 0.2, 1.0};
+    std::array<double, 3> ray_dir = {0.0, 0.0, -1.0};
+
+    double t, u, v;
+    bool hit = ray_triangle_intersection(ray_org, ray_dir, p1, p2, p3, t, u, v);
+
+    EXPECT_TRUE(hit);
+    EXPECT_NEAR(t, 1.0, EPSILON);
+    EXPECT_NEAR(u, 0.2, EPSILON);
+    EXPECT_NEAR(v, 0.2, EPSILON);
+
+    // Test miss (outside triangle)
+    std::array<double, 3> ray_org_miss = {0.6, 0.6, 1.0};
+    hit = ray_triangle_intersection(ray_org_miss, ray_dir, p1, p2, p3, t, u, v);
+    EXPECT_FALSE(hit);
+
+    // Test miss (wrong direction)
+    std::array<double, 3> ray_dir_wrong = {0.0, 0.0, 1.0};
+    hit = ray_triangle_intersection(ray_org, ray_dir_wrong, p1, p2, p3, t, u, v);
+    EXPECT_FALSE(hit);
+}
 
 TEST(TriLibTemplates, FloatType) {
     std::array<float, 3> p1 = {0.0f, 0.0f, 0.0f};

@@ -120,17 +120,29 @@ int main() {
 #### Classification
 - `isObtuse(p1, p2, p3)` - Check if triangle is obtuse (>90°)
 - `isAcute(p1, p2, p3)` - Check if triangle is acute (<90°)
+- `isRightTriangle(p1, p2, p3)` - Check if triangle is right-angled (90°)
+- `isEquilateral(p1, p2, p3)` - Check if all sides are equal
+- `isIsosceles(p1, p2, p3)` - Check if at least two sides are equal
 - `isDegenerate(p1, p2, p3)` - Check if triangle is degenerate (area ≈ 0)
+- `is_ccw(p1, p2, p3, view_dir)` - Check if triangle is oriented counter-clockwise
 
 #### Properties
 - `area(p1, p2, p3)` - Calculate area using Heron's formula
+- `perimeter(p1, p2, p3)` - Calculate sum of edge lengths
 - `normal(p1, p2, p3)` - Calculate surface normal vector
+- `get_bounds(p1, p2, p3)` - Get Axis-Aligned Bounding Box (AABB)
+- `contains(p1, p2, p3, p)` - Check if point p is inside the triangle
 - `centroid(p1, p2, p3)` - Calculate center of mass
 - `circumcenter(p1, p2, p3)` - Calculate center of circumscribed circle
 - `circumradius(p1, p2, p3)` - Calculate radius of circumscribed circle
 - `incenter(p1, p2, p3)` - Calculate center of inscribed circle
 - `inradius(p1, p2, p3)` - Calculate radius of inscribed circle
+- `orthocenter(p1, p2, p3)` - Calculate center where altitudes intersect
+- `altitude(p1, p2, p3, vertex)` - Calculate height from a vertex to opposite edge
 - `barycoordinates(p, p1, p2, p3)` - Calculate barycentric coordinates of point p
+
+#### Intersections
+- `ray_triangle_intersection(...)` - Möller–Trumbore ray-triangle hit test
 
 ### Vector Functions (veclib.hpp)
 
@@ -140,11 +152,22 @@ int main() {
 - `dot_product(v1, v2)` - Dot product
 - `cross_product(v1, v2)` - Cross product (3D vectors)
 - `unit_vector(v)` - Normalize to unit length
+- `add(a, b)` / `sub(a, b)` / `scale(a, s)` - Vector arithmetic
 
-#### Utilities
+#### Spatial Utilities
+- `distance_to_line(p, a, b)` / `closest_point_on_line(...)`
+- `distance_to_segment(p, a, b)`
+- `distance_to_plane(p, p0, n)` / `closest_point_on_plane(...)`
+- `ray_plane_intersection(...)` - Ray-plane intersection test
+- `aabb_intersect(aabb1, aabb2)` - Check if two bounding boxes overlap
+
+#### General Utilities
 - `angle(v1, v2)` - Angle between vectors
 - `make_vector(p1, p2)` - Create vector from two points
-- `mean_value(v)` / `average_value(v)` - Average of vector components
+- `median_value(v)` / `average_value(v)` - Median and average of vector components
+- `projection(a, b)` / `reflection(v, n)` - Geometric vector operations
+- `lerp(a, b, t)` - Linear interpolation
+- `is_equal(a, b, eps)` - Robust floating point comparison
 - `standard_deviation(v)` - Standard deviation of components
 - `random_value(min, max)` - Generate random value in range
 

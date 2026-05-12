@@ -39,6 +39,19 @@ typedef std::array<double,4> Vec4D;
 namespace JMath
 {
 template<class T>
+struct AABB {
+    std::array<T, 3> min_pt;
+    std::array<T, 3> max_pt;
+};
+
+template<class T>
+inline bool aabb_intersect(const AABB<T>& a, const AABB<T>& b) {
+    return (a.min_pt[0] <= b.max_pt[0] && a.max_pt[0] >= b.min_pt[0]) &&
+           (a.min_pt[1] <= b.max_pt[1] && a.max_pt[1] >= b.min_pt[1]) &&
+           (a.min_pt[2] <= b.max_pt[2] && a.max_pt[2] >= b.min_pt[2]);
+}
+
+template<class T>
 inline T max_value( const T &a, const T &b, const T &c)
 {
     return std::max(a,std::max(b, c));
@@ -133,25 +146,148 @@ inline std::array<T,3> unit_vector( const std::array<T,3> &vec)
 ///////////////////////////////////////////////////////////////////////////////
 
 template<class T>
-inline int unit_vector( const Point3D &head, const Point3D &tail)
+inline std::array<T,3> unit_vector( const std::array<T,3> &head, const std::array<T,3> &tail)
 {
-    std::array<T,3> uvec;
-    uvec = make_vector( head, tail);
+    std::array<T,3> uvec = make_vector( head, tail);
     double dl  = magnitude(uvec);
 
-    uvec[0]  /=  dl;
-    uvec[1]  /=  dl;
-    uvec[2]  /=  dl;
+    if (dl > 0) {
+        uvec[0]  /=  dl;
+        uvec[1]  /=  dl;
+        uvec[2]  /=  dl;
+    }
     return uvec;
 }
 
 template<class T>
-inline T mean_value( const std::vector<T> &v)
+inline T median_value( const std::vector<T> &v)
 {
     assert( !v.empty() );
     std::vector<T> tmp(v);
     std::sort( tmp.begin(), tmp.end() );
     return tmp[v.size()/2];
+}
+
+template<class T>
+inline std::array<T,3> add( const std::array<T,3> &A, const std::array<T,3> &B)
+{
+    return {A[0] + B[0], A[1] + B[1], A[2] + B[2]};
+}
+
+template<class T>
+inline std::array<T,3> sub( const std::array<T,3> &A, const std::array<T,3> &B)
+{
+    return {A[0] - B[0], A[1] - B[1], A[2] - B[2]};
+}
+
+template<class T>
+inline std::array<T,3> scale( const std::array<T,3> &A, T s)
+{
+    return {A[0] * s, A[1] * s, A[2] * s};
+}
+
+template<class T>
+inline std::array<T,3> divide( const std::array<T,3> &A, T s)
+{
+    return {A[0] / s, A[1] / s, A[2] / s};
+}
+
+template<class T>
+inline std::array<T,3> lerp( const std::array<T,3> &A, const std::array<T,3> &B, T t)
+{
+    return {A[0] + t*(B[0]-A[0]), A[1] + t*(B[1]-A[1]), A[2] + t*(B[2]-A[2])};
+}
+
+template<class T>
+inline std::array<T,3> projection( const std::array<T,3> &A, const std::array<T,3> &B)
+{
+    T dot = dot_product(A, B);
+    T mag2 = dot_product(B, B);
+    if (mag2 < 1e-15) return {0, 0, 0};
+    return scale(B, dot / mag2);
+}
+
+template<class T>
+inline std::array<T,3> reflection( const std::array<T,3> &v, const std::array<T,3> &n)
+{
+    std::array<T,3> unit_n = unit_vector(n);
+    T dot = dot_product(v, unit_n);
+    return sub(v, scale(unit_n, 2.0 * dot));
+}
+
+template<class T>
+inline bool ray_plane_intersection(const std::array<T, 3>& ray_origin,
+                                   const std::array<T, 3>& ray_direction,
+                                   const std::array<T, 3>& plane_p0,
+                                   const std::array<T, 3>& plane_n,
+                                   T& t) {
+    T denom = dot_product(plane_n, ray_direction);
+    if (std::abs(denom) > 1e-15) {
+        auto p0l0 = sub(plane_p0, ray_origin);
+        t = dot_product(p0l0, plane_n) / denom;
+        return (t >= 0);
+    }
+    return false;
+}
+
+template<class T>
+inline std::array<T,3> closest_point_on_line( const std::array<T,3> &p, 
+                                             const std::array<T,3> &a, 
+                                             const std::array<T,3> &b)
+{
+    auto ab = make_vector(b, a);
+    auto ap = make_vector(p, a);
+    T t = dot_product(ap, ab) / dot_product(ab, ab);
+    return add(a, scale(ab, t));
+}
+
+template<class T>
+inline T distance_to_line( const std::array<T,3> &p, 
+                           const std::array<T,3> &a, 
+                           const std::array<T,3> &b)
+{
+    auto cp = closest_point_on_line(p, a, b);
+    return length(p, cp);
+}
+
+template<class T>
+inline T distance_to_segment( const std::array<T,3> &p, 
+                              const std::array<T,3> &a, 
+                              const std::array<T,3> &b)
+{
+    auto ab = make_vector(b, a);
+    auto ap = make_vector(p, a);
+    T t = dot_product(ap, ab) / dot_product(ab, ab);
+    if (t < 0.0) return length(p, a);
+    if (t > 1.0) return length(p, b);
+    return length(p, add(a, scale(ab, t)));
+}
+
+template<class T>
+inline std::array<T,3> closest_point_on_plane( const std::array<T,3> &p, 
+                                              const std::array<T,3> &p0, 
+                                              const std::array<T,3> &n)
+{
+    auto v = make_vector(p, p0);
+    auto unit_n = unit_vector(n);
+    T dist = dot_product(v, unit_n);
+    return sub(p, scale(unit_n, dist));
+}
+
+template<class T>
+inline T distance_to_plane( const std::array<T,3> &p, 
+                            const std::array<T,3> &p0, 
+                            const std::array<T,3> &n)
+{
+    auto v = make_vector(p, p0);
+    auto unit_n = unit_vector(n);
+    return std::abs(dot_product(v, unit_n));
+}
+
+template<class T>
+inline bool is_equal(T a, T b, T epsilon = 1e-9)
+{
+    return std::abs(a - b) < epsilon;
 }
 
 template<class T>
