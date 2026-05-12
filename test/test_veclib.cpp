@@ -340,6 +340,34 @@ TEST(VecLibBounding, AABBIntersection) {
 }
 
 // ============================================================================
+// Ray-AABB Intersection Tests
+// ============================================================================
+
+TEST(VecLibRayAABB, RayAABBIntersection) {
+    JMath::AABB<double> aabb = {{0.0, 0.0, 0.0}, {2.0, 2.0, 2.0}};
+    std::array<double, 3> ray_org = {-1.0, 1.0, 1.0};
+    std::array<double, 3> ray_dir = {1.0, 0.0, 0.0};
+
+    double tmin, tmax;
+    bool hit = JMath::ray_aabb_intersection(ray_org, ray_dir, aabb, tmin, tmax);
+
+    EXPECT_TRUE(hit);
+    EXPECT_NEAR(tmin, 1.0, EPSILON);
+    EXPECT_NEAR(tmax, 3.0, EPSILON);
+
+    // Test miss (above box)
+    std::array<double, 3> ray_org_miss = {-1.0, 3.0, 1.0};
+    hit = JMath::ray_aabb_intersection(ray_org_miss, ray_dir, aabb, tmin, tmax);
+    EXPECT_FALSE(hit);
+
+    // Test miss (parallel to face)
+    std::array<double, 3> ray_dir_parallel = {0.0, 1.0, 0.0};
+    std::array<double, 3> ray_org_parallel = {3.0, -1.0, 1.0};
+    hit = JMath::ray_aabb_intersection(ray_org_parallel, ray_dir_parallel, aabb, tmin, tmax);
+    EXPECT_FALSE(hit);
+}
+
+// ============================================================================
 // Ray-Plane Intersection Tests
 // ============================================================================
 

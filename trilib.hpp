@@ -474,6 +474,47 @@ inline bool ray_triangle_intersection( const std::array<T,3> &ray_origin,
     t = f * dot_product(e2, q);
     return t > 1e-15;
 }
+
+////////////////////////////////////////////////////////////////////////////////
+
+template<class T>
+inline bool triangle_triangle_intersection(const std::array<T, 3>& p1,
+                                           const std::array<T, 3>& p2,
+                                           const std::array<T, 3>& p3,
+                                           const std::array<T, 3>& q1,
+                                           const std::array<T, 3>& q2,
+                                           const std::array<T, 3>& q3) {
+    // This is a complex test. For robustness, we use a series of segment-triangle tests.
+    // Two triangles intersect if any edge of one triangle intersects the other triangle.
+    // Note: This does not cover the case where one triangle is completely inside another 
+    // and coplanar, but for most 3D mesh collisions, edge-triangle is sufficient.
+    
+    auto edge_intersect = [](const std::array<T, 3>& a, const std::array<T, 3>& b,
+                             const std::array<T, 3>& v1, const std::array<T, 3>& v2,
+                             const std::array<T, 3>& v3) {
+        T t, u, v;
+        auto dir = sub(b, a);
+        T len = magnitude(dir);
+        if (len < 1e-15) return false;
+        auto unit_dir = scale(dir, 1.0 / len);
+        
+        if (ray_triangle_intersection(a, unit_dir, v1, v2, v3, t, u, v)) {
+            return (t >= 0 && t <= len);
+        }
+        return false;
+    };
+
+    if (edge_intersect(p1, p2, q1, q2, q3)) return true;
+    if (edge_intersect(p2, p3, q1, q2, q3)) return true;
+    if (edge_intersect(p3, p1, q1, q2, q3)) return true;
+
+    if (edge_intersect(q1, q2, p1, p2, p3)) return true;
+    if (edge_intersect(q2, q3, p1, p2, p3)) return true;
+    if (edge_intersect(q3, q1, p1, p2, p3)) return true;
+
+    return false;
+}
+
 ////////////////////////////////////////////////////////////////////////////////
 
 template<class T>

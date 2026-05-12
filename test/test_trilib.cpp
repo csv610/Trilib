@@ -459,6 +459,26 @@ TEST(TriLibBoundingAndContainment, WindingOrder) {
 // Intersections Tests
 // ============================================================================
 
+TEST(TriLibIntersections, TriangleTriangleIntersection) {
+    // Overlapping triangles
+    std::array<double, 3> p1 = {0.0, 0.0, 0.0};
+    std::array<double, 3> p2 = {1.0, 0.0, 0.0};
+    std::array<double, 3> p3 = {0.0, 1.0, 0.0};
+
+    std::array<double, 3> q1 = {0.2, 0.2, -1.0};
+    std::array<double, 3> q2 = {0.2, 0.2, 1.0};
+    std::array<double, 3> q3 = {1.0, 1.0, 0.0};
+
+    EXPECT_TRUE(triangle_triangle_intersection(p1, p2, p3, q1, q2, q3));
+
+    // Non-overlapping triangles
+    std::array<double, 3> r1 = {2.0, 2.0, 0.0};
+    std::array<double, 3> r2 = {3.0, 2.0, 0.0};
+    std::array<double, 3> r3 = {2.0, 3.0, 0.0};
+
+    EXPECT_FALSE(triangle_triangle_intersection(p1, p2, p3, r1, r2, r3));
+}
+
 TEST(TriLibIntersections, RayTriangleIntersection) {
     std::array<double, 3> p1 = {0.0, 0.0, 0.0};
     std::array<double, 3> p2 = {1.0, 0.0, 0.0};

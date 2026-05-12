@@ -216,6 +216,34 @@ inline std::array<T,3> reflection( const std::array<T,3> &v, const std::array<T,
 }
 
 template<class T>
+inline bool ray_aabb_intersection(const std::array<T, 3>& ray_origin,
+                                  const std::array<T, 3>& ray_direction,
+                                  const AABB<T>& aabb,
+                                  T& t_min, T& t_max) {
+    t_min = std::numeric_limits<T>::lowest();
+    t_max = std::numeric_limits<T>::max();
+
+    for (int i = 0; i < 3; ++i) {
+        if (std::abs(ray_direction[i]) < 1e-15) {
+            if (ray_origin[i] < aabb.min_pt[i] || ray_origin[i] > aabb.max_pt[i]) {
+                return false;
+            }
+        } else {
+            T t1 = (aabb.min_pt[i] - ray_origin[i]) / ray_direction[i];
+            T t2 = (aabb.max_pt[i] - ray_origin[i]) / ray_direction[i];
+
+            if (t1 > t2) std::swap(t1, t2);
+
+            t_min = std::max(t_min, t1);
+            t_max = std::min(t_max, t2);
+
+            if (t_min > t_max) return false;
+        }
+    }
+    return t_max >= 0;
+}
+
+template<class T>
 inline bool ray_plane_intersection(const std::array<T, 3>& ray_origin,
                                    const std::array<T, 3>& ray_direction,
                                    const std::array<T, 3>& plane_p0,

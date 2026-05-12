@@ -143,6 +143,7 @@ int main() {
 
 #### Intersections
 - `ray_triangle_intersection(...)` - Möller–Trumbore ray-triangle hit test
+- `triangle_triangle_intersection(...)` - Check if two triangles overlap in 3D
 
 ### Vector Functions (veclib.hpp)
 
@@ -159,6 +160,7 @@ int main() {
 - `distance_to_segment(p, a, b)`
 - `distance_to_plane(p, p0, n)` / `closest_point_on_plane(...)`
 - `ray_plane_intersection(...)` - Ray-plane intersection test
+- `ray_aabb_intersection(...)` - Ray-AABB intersection test
 - `aabb_intersect(aabb1, aabb2)` - Check if two bounding boxes overlap
 
 #### General Utilities
